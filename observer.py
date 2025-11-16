@@ -8,6 +8,9 @@ class IObserver(ABC):
 
 
 class IObservable(ABC):
+    @property
+    def state(self): pass
+
     @abstractmethod
     def add_observer(self, observer: IObserver): pass
 
@@ -37,6 +40,7 @@ class WeatherStation(IObservable):
 
     def reset_state(self):
         self._state = {}
+        self.notify_observers()
 
     def add_observer(self, observer: IObserver) -> None:
         self._observers.append(observer)
@@ -50,3 +54,27 @@ class WeatherStation(IObservable):
     def notify_observers(self):
         for observer in self._observers:
             observer.update()
+        print()
+
+
+class Smartphone(IObserver):
+    def __init__(self, name, observable: IObservable) -> None:
+        self.name = name
+        self.observable = observable
+
+    def update(self) -> None:
+        observable_name = self.observable.__class__.__name__
+        print(f'{self.name} o objeto {observable_name} acabou de ser atualizado => {self.observable.state}')
+
+
+station = WeatherStation()
+smartphone = Smartphone('iPhone', station)
+outro_smartphone = Smartphone('Samsumg', station)
+
+station.add_observer(smartphone)
+station.add_observer(outro_smartphone)
+
+station.state = {'temperature': '30'}
+station.state = {'temperature': '32'}
+station.remove_observer(outro_smartphone)
+station.reset_state()
